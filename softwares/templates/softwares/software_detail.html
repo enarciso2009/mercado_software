@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'softwares/style.css' %}">
+    <title>Title</title>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ software.nome }}</h1>
+
+        <p>{{ software.descricao }}</p>
+        <p><strong>Preço:</strong> R$ {{ software.preco }}</p>
+        <p><strong>Tipo:</strong> {{ software.get_tipo_display }}</p>
+        <p><strong>Categoria:</strong> {{ software.categoria.nome }}</p>
+
+        {%if software.categoria.slut %}
+            <a href="{% url 'softwares:software_list' software.categoria.slut %}">
+                Voltar para categoria
+            </a>
+        {% else %}
+            <a href="{% url 'softwares:categoria_list' %}">
+                Voltar para categorias
+            </a>
+        {% endif %}
+    </div>
+
+</body>
+</html>

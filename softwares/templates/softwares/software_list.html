@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'softwares/style.css' %}">
+    <title>Software da categoria</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Software da categoria: {{ categoria.nome }}</h1>
+
+        <ul>
+            {% for software in softwares %}
+                <li>
+                    <a href="{% url 'softwares:software_detail' software.id %}">
+                        {{ software.nome }} - R$ {{ software.preco }}
+                    </a>
+                </li>
+            {% empty %}
+                <li>Nenhum software cadastrado.</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'softwares:categoria_list' %}">Voltar</a>
+    </div>
+</body>
+</html>

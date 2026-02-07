@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'softwares/style.css' %}">
+    <title>Categorias</title>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Categorias</h1>
+
+        <ul>
+            {% for categoria in categorias %}
+                <li>
+                    <a href="{% url 'softwares:software_list' categoria.slug %}">
+                        {{ categoria.nome }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+
+</body>
+</html>
