@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from PIL import Image
 
 class Categoria(models.Model):
     nome = models.CharField(max_length=100, unique=True)
@@ -28,6 +29,16 @@ class Software(models.Model):
     preco = models.DecimalField(max_digits=10, decimal_places=2)
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name="softwares")
+
+    imagem = models.ImageField(upload_to="softwares/", blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.imagem:
+            img = Image.open(self.imagem.path)
+            img.thumbnail((1200, 800))
+            img.save(self.imagem.path, optimize=True, quality=80)
+
 
     vendedor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="softwares")
 

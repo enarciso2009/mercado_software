@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Logout{% endblock %}
+
+{% block content %}
+<h1>Você saiu do sistema</h1>
+
+<p>Até a próxima 👋</p>
+
+<a href="{% url 'login' %}">Fazer login novamente</a>
+{% endblock %}

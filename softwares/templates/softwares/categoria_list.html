@@ -1,27 +1,60 @@
-<!DOCTYPE html>
-{% load static %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'softwares/style.css' %}">
-    <title>Categorias</title>
+{% extends "base.html" %}
+{% block title %}Mercado de Softwares{% endblock %}
 
-</head>
-<body>
-    <div class="container">
-        <h1>Categorias</h1>
+{% block content %}
+<div class="row">
 
-        <ul>
+    <!-- SIDEBAR -->
+    <aside class="col-md-3">
+        <div class="card">
+            <div class="card-header fw-bold">
+                Categorias
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for categoria in categorias %}
+                    <li class="list-group-item">
+                        <a href="{% url 'softwares:software_list' categoria.slug %}">
+                            {{ categoria.nome }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+    <!-- PRODUTOS -->
+    <section class="col-md-9">
+        <h4 class="mb-3">Softwares em destaque</h4>
+
+        <div class="row">
             {% for categoria in categorias %}
-                <li>
-                    <a href="{% url 'softwares:software_list' categoria.slug %}">
-                        {{ categoria.nome }}
-                    </a>
-                </li>
+                {% for software in categoria.softwares.all %}
+                    {% if software.ativo %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ software.nome }}</h5>
+
+                                    <p class="text-muted mb-1">
+                                        {{ software.categoria.nome }}
+                                    </p>
+
+                                    <h5 class="text-success fw-bold">
+                                        R$ {{ software.preco }}
+                                    </h5>
+
+                                    <a href="{% url 'softwares:software_detail' software.id %}"
+                                       class="btn btn-primary w-100 mt-2">
+                                        Ver detalhes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
             {% endfor %}
-        </ul>
-    </div>
+        </div>
+    </section>
 
-
-</body>
-</html>
+</div>
+{% endblock %}

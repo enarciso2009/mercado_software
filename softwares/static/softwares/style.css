@@ -1,4 +1,15 @@
+:root {
+  --primary: #0D6EFD;
+  --secondary: #212529;
+  --accent: #6F42C1;
+  --success: #198754;
+  --bg: #F8F9FA;
+  --text: #212529;
+}
+
 body {
+    background-color: var(--bg);
+    color: var(--text);
     font-family: Arial, Helvetica, sans-serif;
     background-color: #f5f7fa;
     margin: 0;

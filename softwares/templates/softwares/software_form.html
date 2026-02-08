@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if object %}
+        Editar Software
+    {% else %}
+        Cadastrar Software
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<h1>
+    {% if object %}
+        Editar Software
+    {% else %}
+        Cadastrar Software
+    {% endif %}
+</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+</form>
+
+<a href="{% url 'softwares:software_list_admin' %}" class="btn btn-secondary mt-2">⬅ Voltar</a>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Software{% endblock %}
+
+{% block content %}
+<h1>Excluir Software</h1>
+
+<p>
+    Tem certeza que deseja excluir
+    <strong>{{ object.nome }}</strong>?
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">🗑 Sim, excluir</button>
+    <a href="{% url 'softwares:software_list_admin' %}">Cancelar</a>
+</form>
+{% endblock %}

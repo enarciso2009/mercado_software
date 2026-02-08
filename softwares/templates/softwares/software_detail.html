@@ -1,30 +1,40 @@
-<!DOCTYPE html>
-{% load static %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'softwares/style.css' %}">
-    <title>Title</title>
-</head>
-<body>
-    <div class="container">
-        <h1>{{ software.nome }}</h1>
+{% extends "base.html" %}
+{% block title %}{{ software.nome }}{% endblock %}
 
-        <p>{{ software.descricao }}</p>
-        <p><strong>Preço:</strong> R$ {{ software.preco }}</p>
-        <p><strong>Tipo:</strong> {{ software.get_tipo_display }}</p>
-        <p><strong>Categoria:</strong> {{ software.categoria.nome }}</p>
-
-        {%if software.categoria.slut %}
-            <a href="{% url 'softwares:software_list' software.categoria.slut %}">
-                Voltar para categoria
-            </a>
+{% block content %}
+<div class="row">
+    <!-- IMAGEM -->
+    <div class="col-md-5">
+        {% if software.imagem %}
+            <img src="{{ software.imagem.url }}"
+                 alt="{{ software.nome }}"
+                 class="img-fluid rounded shadow-sm mb-3">
         {% else %}
-            <a href="{% url 'softwares:categoria_list' %}">
-                Voltar para categorias
-            </a>
+            <div class="border rounded p-5 text-center text-muted">
+                Sem imagem disponível
+            </div>
         {% endif %}
     </div>
 
-</body>
-</html>
+    <!-- INFO -->
+    <div class="col-md-7">
+        <h1 class="mb-3">{{ software.nome }}</h1>
+
+        <p class="text-muted">{{ software.descricao }}</p>
+
+        <h3 class="text-primary mb-3">
+            R$ {{ software.preco }}
+        </h3>
+
+        <p>
+            <strong>Tipo:</strong> {{ software.get_tipo_display }}<br>
+            <strong>Categoria:</strong> {{ software.categoria.nome }}
+        </p>
+
+        <a href="{% url 'softwares:software_list' software.categoria.slug %}"
+           class="btn btn-outline-secondary mt-3">
+            ⬅ Voltar para categoria
+        </a>
+    </div>
+</div>
+{% endblock %}
