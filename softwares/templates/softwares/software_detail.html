@@ -3,6 +3,7 @@
 
 {% block content %}
 <div class="row">
+
     <!-- IMAGEM -->
     <div class="col-md-5">
         {% if software.imagem %}
@@ -26,6 +27,27 @@
             R$ {{ software.preco }}
         </h3>
 
+        <!-- BOTÃO TENHO INTERESSE -->
+        {% if user.is_authenticated %}
+            {% if user.perfil.tipo_usuario == "VENDEDOR" and software.vendedor == user %}
+                <a href="#" class="btn btn-success btn-lg mt-3 disabled" aria-disabled="true">
+                    💬 Tenho interesse
+                </a>
+            {% else %}
+                <a href="{% url 'softwares:software_interesse' software.pk %}"
+                    class="btn btn-success btn-lg mt-3">
+                    💬 Tenho interesse
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'softwares:software_interesse' software.pk %}"
+                class="btn btn-success btn-lg mt-3">
+                💬 Tenho interesse
+            </a>
+        {% endif %}
+
+        <hr>
+
         <p>
             <strong>Tipo:</strong> {{ software.get_tipo_display }}<br>
             <strong>Categoria:</strong> {{ software.categoria.nome }}
@@ -36,5 +58,6 @@
             ⬅ Voltar para categoria
         </a>
     </div>
+
 </div>
 {% endblock %}

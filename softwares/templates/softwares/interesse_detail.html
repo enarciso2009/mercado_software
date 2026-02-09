@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Mensagem recebida{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <strong>Software:</strong> {{ interesse.software.nome }}
+    </div>
+
+    <div class="card-body">
+        <p><strong>Comprador:</strong> {{ interesse.nome }}</p>
+        <p><strong>Email:</strong> {{ interesse.email }}</p>
+
+        <hr>
+
+        <p><strong>Mensagem:</strong></p>
+        <p>{{ interesse.mensagem|linebreaks }}</p>
+    </div>
+
+    <div class="card-footer text-end">
+        <a href="{% url 'softwares:interesse_list' %}" class="btn btn-secondary">
+            ⬅ Voltar
+        </a>
+    </div>
+</div>
+{% endblock %}

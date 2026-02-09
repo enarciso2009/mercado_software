@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Tenho interesse{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="mb-3">
+                    Tenho interesse em: <strong>{{ view.software.nome }}</strong>
+                </h4>
+
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Enviar interesse
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
