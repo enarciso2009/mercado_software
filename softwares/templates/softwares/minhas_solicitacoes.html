@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Minhas Solicitações</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Software</th>
+            <th>Status</th>
+            <th>Data</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for interesse in object_list %}
+        <tr>
+            <td>{{ interesse.software.nome }}</td>
+            <td>
+                {% if interesse.status == "NOVO" %}
+                    <span class="badge bg-warning text-dark">Novo</span>
+                {% else %}
+                    <span class="badge bg-success">Respondido</span>
+                {% endif %}
+            </td>
+            <td>{{ interesse.criado_em }}</td>
+            <td>
+                <a href="{% url 'softwares:interesse_cliente_detail' interesse.id %}"
+                   class="btn btn-sm btn-primary">
+                    Ver
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Você ainda não enviou solicitações.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

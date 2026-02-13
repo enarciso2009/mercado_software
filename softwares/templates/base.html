@@ -31,12 +31,20 @@
             {% if user.is_authenticated %}
                 <span class="text-light me-3">Olá, {{ user.username }}!</span>
 
+                <!-- VENDEDOR OU ADMIN -->
                 {% if user.is_superuser or user.perfil.tipo_usuario == "VENDEDOR" %}
                     <a href="{% url 'softwares:software_list_admin' %}" class="btn btn-outline-light me-2">
                         Dashboard
                     </a>
                     <a href="{% url 'softwares:interesse_list' %}" class="btn btn-outline-light me-2">
                         Interesses
+                    </a>
+                {% endif %}
+
+                <!-- COMPRADOR -->
+                {% if user.perfil.tipo_usuario == "COMPRADOR" %}
+                    <a href="{% url 'softwares:minhas_solicitacoes' %}" class="btn btn-outline-light me-2">
+                        Minhas Solicitações
                     </a>
                 {% endif %}
 

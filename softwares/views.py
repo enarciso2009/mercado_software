@@ -1,3 +1,7 @@
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseRedirect
+from django.views import View
+from .utils import enviar_email_resposta, enviar_email_interesse
 from .mixins import VendedorRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
@@ -7,9 +11,12 @@ from django.contrib.auth.views import LoginView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.core.exceptions import PermissionDenied
-from .models import Categoria, Software, Interesse, Perfil
-from .forms import SoftwareForm, InteresseForm, CadastroForm
+from .models import Categoria, Software, Interesse, Perfil, Favorito, MensagemInteresse
+from .forms import SoftwareForm, InteresseForm, CadastroForm, RespostaInteresseForm, MensagemInteresseForm
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
+from django.utils import timezone
+
+
 
 
 class CustomLoginView(LoginView):
@@ -117,7 +124,7 @@ class SoftwareUpdateView(LoginRequiredMixin, VendedorRequiredMixin, UpdateView):
 
     def get_queryset(self):
         # Garante que vendedor só edite seus próprios softwares
-        return Software,object.filter(vendedor=self.request.user)
+        return Software.objects.filter(vendedor=self.request.user)
 
 
 class SoftwareDeleteView(LoginRequiredMixin, VendedorRequiredMixin, DeleteView):
@@ -134,7 +141,7 @@ class SoftwareDeleteView(LoginRequiredMixin, VendedorRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-class InteresseCreateView(SuccessMessageMixin, CreateView):
+class InteresseCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Interesse
     form_class = InteresseForm
     template_name = "softwares/interesse_form.html"
@@ -150,7 +157,11 @@ class InteresseCreateView(SuccessMessageMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.software = self.software
-        return super().form_valid(form)
+        form.instance.usuario = self.request.user
+        response = super().form_valid(form)
+
+        enviar_email_interesse(self.object)
+        return response
 
     def get_success_url(self):
         return self.software.get_absolute_url() if hasattr(self.software, "get_absolute_url") else "/"
@@ -168,10 +179,11 @@ class InteresseListView(LoginRequiredMixin, VendedorRequiredMixin, ListView):
         ).select_related("software")
 
 
-class InteresseDetailView(LoginRequiredMixin, VendedorRequiredMixin, DetailView):
+class InteresseDetailView(LoginRequiredMixin, VendedorRequiredMixin, UpdateView):
     model = Interesse
     template_name = "softwares/interesse_detail.html"
     context_object_name = "interesse"
+    form_class = RespostaInteresseForm
 
     def get_queryset(self):
         #garante que o vendedor só veja interesses dos próprios softwares
@@ -188,4 +200,95 @@ class InteresseDetailView(LoginRequiredMixin, VendedorRequiredMixin, DetailView)
 
         return interesse
 
+    def form_valid(self, form):
+        interesse = form.save(commit=False)
+        interesse.status = 'RESPONDIDO'
+        interesse.respondido_em = timezone.now()
+        interesse.save()
 
+        enviar_email_resposta(interesse)
+
+        messages.success(self.request, "Resposta enviada com sucesso!")
+        return redirect("softwares:interesse_list")
+
+
+class FavoritoToggleView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        software = get_object_or_404(Software, pk=pk)
+        favorito = Favorito.objects.filter(usuario=request.user, software=software)
+
+        if favorito.exists():
+            favorito.delete()
+        else:
+            Favorito.objects.create(
+                usuario=request.user,
+                software=software
+            )
+        return HttpResponseRedirect(software.get_absolute_url())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = MensagemInteresseForm()
+        return context
+
+
+class FavoritosListView(LoginRequiredMixin, ListView):
+    model = Favorito
+    template_name = "softwares/favoritos_list.html"
+    context_object_name = 'favoritos'
+
+    def get_queryset(self):
+        return Favorito.objects.filter(usuario=self.request.user).select_related("software")
+
+
+class MinhasSolicitacoesView(LoginRequiredMixin, ListView):
+    model = Interesse
+    template_name = "softwares/minhas_solicitacoes.html"
+
+    def get_queryset(self):
+        return Interesse.objects.filter(usuario=self.request.user).select_related("software")
+
+
+class InteresseClienteDetailView(LoginRequiredMixin, DetailView):
+    model = Interesse
+    template_name = "softwares/interesse_cliente_detail.html"
+    context_object_name = "interesse"
+
+    def get_queryset(self):
+        return Interesse.objects.filter(
+            usuario=self.request.user
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = MensagemInteresseForm
+        return context
+
+
+class MensagemInteresseCreateView(LoginRequiredMixin, CreateView):
+    model = MensagemInteresse
+    form_class = MensagemInteresseForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.interesse = get_object_or_404(
+            Interesse,
+            pk=self.kwargs['pk']
+        )
+
+        # Só pode participar da conversa quem é comprador ou vendedor
+
+        if request.user != self.interesse.usuario and \
+            request.user != self.interesse.software.vendedor:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.interesse = self.interesse
+        form.instance.autor = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Redireciona de volta para a página correta
+        if self.request.user == self.interesse.usuario:
+            return reverse_lazy("softwares:minha_solicitacao_detail", kwargs={"pk": self.interesse.pk})
+        return reverse_lazy("softwares:interesse_detail", kwargs={"pk": self.interesse.pk})

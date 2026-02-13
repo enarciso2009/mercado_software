@@ -1,27 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Mensagem recebida{% endblock %}
-
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <strong>Software:</strong> {{ interesse.software.nome }}
-    </div>
 
-    <div class="card-body">
-        <p><strong>Comprador:</strong> {{ interesse.nome }}</p>
-        <p><strong>Email:</strong> {{ interesse.email }}</p>
+<h2>Detalhes da Solicitação</h2>
 
+<p><strong>Software:</strong> {{ interesse.software.nome }}</p>
+
+<p><strong>Mensagem inicial:</strong></p>
+<p>{{ interesse.mensagem|linebreaks }}</p>
+
+<hr>
+
+{% if interesse.status == "RESPONDIDO" %}
+    <h4>Resposta do vendedor:</h4>
+    <p>{{ interesse.resposta_vendedor|linebreaks }}</p>
+{% else %}
+    <p class="text-muted">Aguardando resposta do vendedor...</p>
+{% endif %}
+
+<hr>
+
+<h4>Conversa</h4>
+
+<div class="card p-3 mb-3">
+    {% for mensagem in interesse.mensagens.all %}
+        <div class="mb-3">
+            <strong>{{ mensagem.autor.username }}</strong>
+            <small class="text-muted">
+                • {{ mensagem.criada_em|date:"d/m/Y H:i" }}
+            </small>
+            <div class="mt-1">
+                {{ mensagem.mensagem|linebreaks }}
+            </div>
+        </div>
         <hr>
-
-        <p><strong>Mensagem:</strong></p>
-        <p>{{ interesse.mensagem|linebreaks }}</p>
-    </div>
-
-    <div class="card-footer text-end">
-        <a href="{% url 'softwares:interesse_list' %}" class="btn btn-secondary">
-            ⬅ Voltar
-        </a>
-    </div>
+    {% empty %}
+        <p class="text-muted">Nenhuma mensagem ainda.</p>
+    {% endfor %}
 </div>
+
+<h5>Enviar nova mensagem</h5>
+
+<form method="post" action="{% url 'softwares:mensagem_interesse_create' interesse.id %}">
+    {% csrf_token %}
+    {{ form.mensagem }}
+    <button type="submit" class="btn btn-primary mt-2">
+        Enviar mensagem
+    </button>
+</form>
+
+<br>
+
+<a href="{% url 'softwares:minhas_solicitacoes' %}" class="btn btn-secondary">
+    ⬅ Voltar
+</a>
+
 {% endblock %}

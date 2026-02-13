@@ -1,6 +1,4 @@
-from django.urls import path, include
-from softwares.views import CustomLoginView
-
+from django.urls import path
 from .views import (
     CategoriaListView,
     SoftwareListByCategoriaView,
@@ -13,6 +11,10 @@ from .views import (
     InteresseListView,
     InteresseDetailView,
     CadastroView,
+    CustomLoginView,
+    MinhasSolicitacoesView,
+    InteresseClienteDetailView,
+    MensagemInteresseCreateView,
 )
 
 app_name = "softwares"
@@ -40,6 +42,9 @@ urlpatterns = [
     path("dashboard/interesses/", InteresseListView.as_view(), name="interesse_list"),
     path("dashboard/interesses/<int:pk>/", InteresseDetailView.as_view(), name="interesse_detail"),
 
-
+    #MINHAS SOLICITAÇÕES
+    path("minhas-solicitacoes/", MinhasSolicitacoesView.as_view(), name="minhas_solicitacoes"),
+    path("minhas-solicitacoes/<int:pk>/", InteresseClienteDetailView.as_view(), name="interesse_cliente_detail"),
+    path("interesse/<int:pk>/mensagem/", MensagemInteresseCreateView.as_view(), name="mensagem_interesse_create"),
 
 ]

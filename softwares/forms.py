@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Software, Interesse, Perfil
+from .models import Software, Interesse, Perfil, MensagemInteresse
 
 class SoftwareForm(forms.ModelForm):
     class Meta:
@@ -18,11 +18,9 @@ class SoftwareForm(forms.ModelForm):
 class InteresseForm(forms.ModelForm):
     class Meta:
         model = Interesse
-        fields = ["nome", "email", "mensagem"]
+        fields = ["mensagem"]
         widgets = {
-            "nome": forms.TextInput(attrs={"class": "form-control", "placeholder": "Seu nome"}),
-            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "Seu email"}),
-            "mensagem": forms.Textarea(attrs={"class": "form-control", "placeholder": "Mensagem (opcional)", "rows": 4}),
+           "mensagem": forms.Textarea(attrs={"class": "form-control", "placeholder": "Mensagem (opcional)", "rows": 4}),
         }
 
 class CadastroForm(forms.ModelForm):
@@ -57,3 +55,21 @@ class CadastroForm(forms.ModelForm):
             Perfil.objects.create(user=user, tipo=self.cleaned_data["tipo_usuario"])
         return user
 
+
+class RespostaInteresseForm(forms.ModelForm):
+    class Meta:
+        model = Interesse
+        fields = ["resposta_vendedor"]
+
+
+class MensagemInteresseForm(forms.BaseModelForm):
+    class Meta:
+        model = MensagemInteresse
+        fields = ["mensagem"]
+        widgets = {
+            "mensagem": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Digite sua mensagem..."
+            })
+        }
