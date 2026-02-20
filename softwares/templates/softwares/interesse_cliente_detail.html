@@ -2,23 +2,115 @@
 
 {% block content %}
 
-<h2>Detalhes da Solicitação</h2>
+<div class="card">
 
-<p><strong>Software:</strong> {{ interesse.software.nome }}</p>
-<p><strong>Mensagem enviada:</strong></p>
-<p>{{ interesse.mensagem|linebreaks }}</p>
+    <div class="card-header">
+        <strong>Software:</strong> {{ interesse.software.nome }}
+    </div>
 
-<hr>
 
-{% if interesse.status == "RESPONDIDO" %}
-    <h4>Resposta do vendedor:</h4>
-    <p>{{ interesse.resposta_vendedor|linebreaks }}</p>
-{% else %}
-    <p class="text-muted">Aguardando resposta do vendedor...</p>
-{% endif %}
+    <!-- HISTÓRICO DO CHAT -->
+    <div class="card-body" style="max-height:400px; overflow-y:auto; background:#f8f9fa;">
 
-<a href="{% url 'softwares:minhas_solicitacoes' %}" class="btn btn-secondary">
+        <!-- Primeira mensagem do comprador -->
+        <div class="mb-3">
+            <div class="p-2 rounded bg-primary text-white"
+                 style="max-width:70%;">
+
+                {{ interesse.mensagem|linebreaks }}
+
+                <div class="small text-end opacity-75">
+                    você • {{ interesse.criado_em|date:"d/m/Y H:i" }}
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Mensagens do chat -->
+        {% for msg in interesse.mensagens.all %}
+
+            {% if msg.autor == user %}
+
+                <!-- mensagem do comprador -->
+                <div class="mb-3 d-flex justify-content-end">
+
+                    <div class="p-2 rounded bg-primary text-white"
+                         style="max-width:70%;">
+
+                        {{ msg.mensagem|linebreaks }}
+
+                        <div class="small text-end opacity-75">
+                            você • {{ msg.criada_em|date:"d/m/Y H:i" }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <!-- mensagem do vendedor -->
+                <div class="mb-3 d-flex justify-content-start">
+
+                    <div class="p-2 rounded bg-light border"
+                         style="max-width:70%;">
+
+                        {{ msg.mensagem|linebreaks }}
+
+                        <div class="small text-muted">
+                            vendedor • {{ msg.criada_em|date:"d/m/Y H:i" }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        {% empty %}
+
+            {% if interesse.status != "RESPONDIDO" %}
+                <p class="text-muted">
+                    Aguardando resposta do vendedor...
+                </p>
+            {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- FORM DE ENVIO -->
+    <div class="card-footer">
+
+        <form method="post"
+              action="{% url 'softwares:mensagem_interesse_create' interesse.pk %}">
+
+            {% csrf_token %}
+
+            <div class="input-group">
+
+                {{ form.mensagem }}
+
+                <button class="btn btn-primary">
+                    Enviar
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<a href="{% url 'softwares:minhas_solicitacoes' %}"
+   class="btn btn-secondary mt-3">
+
     ⬅ Voltar
+
 </a>
 
 {% endblock %}

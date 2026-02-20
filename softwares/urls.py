@@ -14,7 +14,7 @@ from .views import (
     CustomLoginView,
     MinhasSolicitacoesView,
     InteresseClienteDetailView,
-    MensagemInteresseCreateView,
+    MensagemInteresseCreateView, FavoritosListView, FavoritoToggleView
 )
 
 app_name = "softwares"
@@ -46,5 +46,9 @@ urlpatterns = [
     path("minhas-solicitacoes/", MinhasSolicitacoesView.as_view(), name="minhas_solicitacoes"),
     path("minhas-solicitacoes/<int:pk>/", InteresseClienteDetailView.as_view(), name="interesse_cliente_detail"),
     path("interesse/<int:pk>/mensagem/", MensagemInteresseCreateView.as_view(), name="mensagem_interesse_create"),
+
+    #FAVORITOS
+    path("favoritos/", FavoritosListView.as_view(), name="favoritos_list"),
+    path("softwares/<int:pk>/favorito/", FavoritoToggleView.as_view(), name="favorito_toggle"),
 
 ]

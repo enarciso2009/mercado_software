@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Enviar mensagem</h2>
+
+<p>
+    <strong>Software:</strong> {{ interesse.software.nome }}
+</p>
+
+<p>
+    <strong>Mensagem do comprador:</strong><br>
+    {{ interesse.mensagem|linebreaks }}
+</p>
+
+<hr>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label class="form-label">Sua resposta:</label>
+        {{ form.mensagem }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Enviar resposta
+    </button>
+
+    <a href="{% url 'softwares:interesses_recebidos' %}" class="btn btn-secondary">
+        Cancelar
+    </a>
+
+</form>
+
+{% endblock %}

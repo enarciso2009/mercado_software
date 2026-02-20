@@ -19,6 +19,7 @@
 
     <!-- INFO -->
     <div class="col-md-7">
+
         <h1 class="mb-3">{{ software.nome }}</h1>
 
         <p class="text-muted">{{ software.descricao }}</p>
@@ -30,33 +31,63 @@
         <!-- BOTÃO TENHO INTERESSE -->
         {% if user.is_authenticated %}
             {% if user.perfil.tipo_usuario == "VENDEDOR" and software.vendedor == user %}
-                <a href="#" class="btn btn-success btn-lg mt-3 disabled" aria-disabled="true">
-                    💬 Tenho interesse
+                <a href="#"
+                   class="btn btn-success btn-lg mt-3 disabled">
+                   💬 Tenho interesse
                 </a>
             {% else %}
                 <a href="{% url 'softwares:software_interesse' software.pk %}"
-                    class="btn btn-success btn-lg mt-3">
-                    💬 Tenho interesse
+                   class="btn btn-success btn-lg mt-3">
+                   💬 Tenho interesse
                 </a>
             {% endif %}
         {% else %}
             <a href="{% url 'softwares:software_interesse' software.pk %}"
-                class="btn btn-success btn-lg mt-3">
-                💬 Tenho interesse
+               class="btn btn-success btn-lg mt-3">
+               💬 Tenho interesse
             </a>
         {% endif %}
 
         <hr>
 
-        <p>
+
+
+        <!-- TIPO + CATEGORIA -->
+        <div class="mb-2">
             <strong>Tipo:</strong> {{ software.get_tipo_display }}<br>
-            <strong>Categoria:</strong> {{ software.categoria.nome }}
-        </p>
+            <strong>Categoria:</strong> {{ software.categoria.nome }}<br>
+
+        </div>
+
+        <!-- FAVORITO (AGORA À ESQUERDA) -->
+        {% if user.is_authenticated %}
+        <form method="post"
+            action="{% url 'softwares:favorito_toggle' software.pk %}">
+
+            {% csrf_token %}
+
+            <button type="submit"
+                class="btn p-0 border-0 bg-transparent favorito-btn">
+
+                {% if favoritado %}
+                    <i class="bi bi-heart-fill text-danger favorito-icon"></i>
+                {% else %}
+                    <i class="bi bi-heart text-danger favorito-icon"></i>
+                {% endif %}
+
+            </button>
+
+        </form>
+        {% endif %}
+
+
+
 
         <a href="{% url 'softwares:software_list' software.categoria.slug %}"
-           class="btn btn-outline-secondary mt-3">
-            ⬅ Voltar para categoria
+           class="btn btn-outline-secondary btn-sm mt-3 d-inline-flex align-items-center">
+            ⬅ Voltar
         </a>
+
     </div>
 
 </div>

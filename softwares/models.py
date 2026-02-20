@@ -1,5 +1,3 @@
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 from django.conf import settings
 from django.db import models
@@ -33,7 +31,7 @@ class Software(models.Model):
     preco = models.DecimalField(max_digits=10, decimal_places=2)
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name="softwares")
-
+    comissao_percentual = models.DecimalField(max_digits=5, decimal_places=2, default=10)
     imagem = models.ImageField(upload_to="softwares/", blank=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -112,8 +110,54 @@ class MensagemInteresse(models.Model):
     mensagem = models.TextField()
     criada_em = models.DateTimeField(auto_now_add=True)
 
+    lida = models.BooleanField(default=False)
+
     class Meta:
         ordering = ["criada_em"]
 
     def __str__(self):
         return f"Mensagem de {self.autor} em {self.criada_em}"
+
+
+class ContratoAceite(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    aceito = models.BooleanField(default=False)
+    aceito_em = models.DateTimeField(null=True, blank=True)
+    ip = models.GenericIPAddressField(null=True)
+
+
+class Pedido(models.Model):
+    STATUS_CHOICES = (
+        ("PENDENTE", "Pendente"),
+        ("PAGO", "Pago"),
+        ("CANCELADO", "Cancelado"),
+    )
+
+    comprador = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pedidos")
+    software = models.ForeignKey(Software, on_delete=models.CASCADE)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDENTE")
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Pedido #{self.id}'
+
+
+class Pagamento(models.Model):
+    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name="pagamento")
+    transaction_id = models.CharField(max_length=10, null=True, blank=True)
+    status = models.CharField(max_length=50, null=True, blank=True)
+
+
+class Avaliacao(models.Model):
+    vendedor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="avaliacoes_recebidas")
+    comprador = models.ForeignKey(User, on_delete=models.CASCADE, related_name="avaliacoes_feitas")
+    nota = models.IntegerField()
+    comentario = models.TextField(max_length=255, null=True, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("vendedor", "comprador")
+
+
+

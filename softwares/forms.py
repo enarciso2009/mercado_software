@@ -62,7 +62,7 @@ class RespostaInteresseForm(forms.ModelForm):
         fields = ["resposta_vendedor"]
 
 
-class MensagemInteresseForm(forms.BaseModelForm):
+class MensagemInteresseForm(forms.ModelForm):
     class Meta:
         model = MensagemInteresse
         fields = ["mensagem"]

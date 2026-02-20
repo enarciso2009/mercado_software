@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Meus Favoritos</h2>
+
+{% if favoritos %}
+
+<div class="row">
+
+{% for favorito in favoritos %}
+
+<div class="col-md-4 mb-3">
+
+    <div class="card h-100">
+
+        {% if favorito.software.imagem %}
+            <img src="{{ favorito.software.imagem.url }}" class="card-img-top">
+        {% endif %}
+
+        <div class="card-body">
+
+            <h5>{{ favorito.software.nome }}</h5>
+
+            <p>
+                R$ {{ favorito.software.preco }}
+            </p>
+
+            <a href="{% url 'softwares:software_detail' favorito.software.id %}"
+               class="btn btn-primary">
+
+               Ver Software
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<p>Você ainda não possui favoritos.</p>
+
+{% endif %}
+
+{% endblock %}

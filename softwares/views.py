@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views import View
 from .utils import enviar_email_resposta, enviar_email_interesse
@@ -9,12 +10,13 @@ from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.core.exceptions import PermissionDenied
 from .models import Categoria, Software, Interesse, Perfil, Favorito, MensagemInteresse
 from .forms import SoftwareForm, InteresseForm, CadastroForm, RespostaInteresseForm, MensagemInteresseForm
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, DetailView
 from django.utils import timezone
+
 
 
 
@@ -86,6 +88,15 @@ class SoftwareDetailView(DetailView):
     model = Software
     template_name = 'softwares/software_detail.html'
     context_object_name = 'software'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if self.request.user.is_authenticated:
+            context["favoritado"] = Favorito.objects.filter(usuario=self.request.user, software=self.object).exists()
+        else:
+            context["favoritado"] = False
+        return context
 
 
 class SoftwareCreateView(LoginRequiredMixin, VendedorRequiredMixin, SuccessMessageMixin, CreateView):
@@ -211,25 +222,29 @@ class InteresseDetailView(LoginRequiredMixin, VendedorRequiredMixin, UpdateView)
         messages.success(self.request, "Resposta enviada com sucesso!")
         return redirect("softwares:interesse_list")
 
-
-class FavoritoToggleView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        software = get_object_or_404(Software, pk=pk)
-        favorito = Favorito.objects.filter(usuario=request.user, software=software)
-
-        if favorito.exists():
-            favorito.delete()
-        else:
-            Favorito.objects.create(
-                usuario=request.user,
-                software=software
-            )
-        return HttpResponseRedirect(software.get_absolute_url())
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = MensagemInteresseForm()
         return context
+
+
+class FavoritoToggleView(LoginRequiredMixin, View):
+
+    def post(self, request, pk):
+
+        software = get_object_or_404(Software, pk=pk)
+
+        favorito, created = Favorito.objects.get_or_create(usuario=request.user, software=software)
+
+        if not created:
+            favorito.delete()
+            messages.info(request, "Removido dos favoritos.")
+        else:
+            messages.success(request, "Adicionando aos favoritos.")
+
+        return redirect("softwares:software_detail", pk=pk)
+
+
 
 
 class FavoritosListView(LoginRequiredMixin, ListView):
@@ -261,34 +276,50 @@ class InteresseClienteDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = MensagemInteresseForm
+        context["form"] = MensagemInteresseForm()
         return context
 
 
+
+
 class MensagemInteresseCreateView(LoginRequiredMixin, CreateView):
+
     model = MensagemInteresse
     form_class = MensagemInteresseForm
+    template_name = "softwares/mensageminteresse_form.html"
 
     def dispatch(self, request, *args, **kwargs):
         self.interesse = get_object_or_404(
             Interesse,
-            pk=self.kwargs['pk']
+            pk=self.kwargs["pk"]
         )
-
-        # Só pode participar da conversa quem é comprador ou vendedor
-
-        if request.user != self.interesse.usuario and \
-            request.user != self.interesse.software.vendedor:
-            raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["interesse"] = self.interesse
+        return context
+
     def form_valid(self, form):
-        form.instance.interesse = self.interesse
-        form.instance.autor = self.request.user
-        return super().form_valid(form)
+        mensagem = form.save(commit=False)
+
+        mensagem.interesse = self.interesse
+        mensagem.autor = self.request.user
+
+        mensagem.save()
+
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
-        # Redireciona de volta para a página correta
+        # comprador
         if self.request.user == self.interesse.usuario:
-            return reverse_lazy("softwares:minha_solicitacao_detail", kwargs={"pk": self.interesse.pk})
-        return reverse_lazy("softwares:interesse_detail", kwargs={"pk": self.interesse.pk})
+            return reverse_lazy(
+                "softwares:interesse_cliente_detail",
+                kwargs={"pk": self.interesse.pk}
+            )
+
+        # vendedor
+        return reverse_lazy(
+            "softwares:interesse_detail",
+            kwargs={"pk": self.interesse.pk}
+        )

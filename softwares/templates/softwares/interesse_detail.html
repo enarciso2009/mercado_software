@@ -2,57 +2,103 @@
 
 {% block content %}
 
-<h2>Detalhes da Solicitação</h2>
+<div class="container mt-4">
 
-<p><strong>Software:</strong> {{ interesse.software.nome }}</p>
+    <h4>
+        Conversa sobre: <strong>{{ interesse.software.nome }}</strong>
+    </h4>
 
-<p><strong>Mensagem inicial:</strong></p>
-<p>{{ interesse.mensagem|linebreaks }}</p>
+    <hr>
 
-<hr>
+    <!-- AREA DO CHAT -->
+    <div id="chat-box"
+         style="
+            height:400px;
+            overflow-y:auto;
+            background:#f8f9fa;
+            padding:15px;
+            border-radius:10px;
+         ">
 
-{% if interesse.status == "RESPONDIDO" %}
-    <h4>Resposta do vendedor:</h4>
-    <p>{{ interesse.resposta_vendedor|linebreaks }}</p>
-{% else %}
-    <p class="text-muted">Aguardando resposta do vendedor...</p>
-{% endif %}
-
-<hr>
-
-<h4>Conversa</h4>
-
-<div class="card p-3 mb-3">
-    {% for mensagem in interesse.mensagens.all %}
+        <!-- primeira mensagem -->
         <div class="mb-3">
-            <strong>{{ mensagem.autor.username }}</strong>
-            <small class="text-muted">
-                • {{ mensagem.criada_em|date:"d/m/Y H:i" }}
-            </small>
-            <div class="mt-1">
-                {{ mensagem.mensagem|linebreaks }}
+            <strong>{{ interesse.usuario.username }}</strong><br>
+            <div class="p-2 bg-light rounded">
+                {{ interesse.mensagem }}
             </div>
         </div>
-        <hr>
-    {% empty %}
-        <p class="text-muted">Nenhuma mensagem ainda.</p>
-    {% endfor %}
+
+        <!-- mensagens -->
+        {% for msg in interesse.mensagens.all %}
+
+            {% if msg.autor == request.user %}
+
+                <div class="text-end mb-3">
+
+                    <div class="d-inline-block p-2 rounded"
+                         style="background:#0d6efd;color:white;max-width:70%;">
+                        {{ msg.mensagem }}
+                    </div>
+
+                    <br>
+
+                    <small class="text-muted">
+                        {{ msg.criada_em|date:"d/m/Y H:i" }}
+                    </small>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-start mb-3">
+
+                    <div class="d-inline-block p-2 rounded"
+                         style="background:#e9ecef;max-width:70%;">
+                        {{ msg.mensagem }}
+                    </div>
+
+                    <br>
+
+                    <small class="text-muted">
+                        {{ msg.autor.username }} • {{ msg.criada_em|date:"d/m/Y H:i" }}
+                    </small>
+
+                </div>
+
+            {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+    <hr>
+
+    <!-- FORM -->
+    <form method="post"
+          action="{% url 'softwares:mensagem_interesse_create' interesse.pk %}">
+
+        {% csrf_token %}
+
+        <div class="input-group">
+
+            {{ form.mensagem }}
+
+            <button class="btn btn-primary">
+                Enviar
+            </button>
+
+        </div>
+
+    </form>
+
 </div>
 
-<h5>Enviar nova mensagem</h5>
 
-<form method="post" action="{% url 'softwares:mensagem_interesse_create' interesse.id %}">
-    {% csrf_token %}
-    {{ form.mensagem }}
-    <button type="submit" class="btn btn-primary mt-2">
-        Enviar mensagem
-    </button>
-</form>
+<!-- auto scroll -->
+<script>
+    const chatBox = document.getElementById('chat-box');
+    chatBox.scrollTop = chatBox.scrollHeight;
+</script>
 
-<br>
-
-<a href="{% url 'softwares:minhas_solicitacoes' %}" class="btn btn-secondary">
-    ⬅ Voltar
-</a>
 
 {% endblock %}
